@@ -12,14 +12,14 @@ class Clause(object):
 
 # A predicate has:
 # a name - function name that is definitive
-# isNegated - a flag to see if this predicate is negated or not
+# negated - a flag to see if this predicate is negated or not
 # values - either False or a dictionary of values, can be a term (variable or constant) or again a predicate
 # numOfValues - how many values are there
 class Predicate(object):
 
-    def __init__(self, name, isNegated, values):
+    def __init__(self, name, negated, values):
         self.name = name
-        self.isNegated = isNegated
+        self.negated = negated
         self.values = values
         self.numOfValues = len(self.values.keys())
 
@@ -56,9 +56,9 @@ class Predicate(object):
 
 class Term(object):
 
-    def __init__(self, name, isNegated, isConstant):
+    def __init__(self, name, negated, isConstant):
         self.name = name
-        self.isNegated = isNegated
+        self.negated = negated
         self.isConstant = isConstant
 
     def changeName(self, newName):
@@ -127,28 +127,30 @@ def inputHandler(clause, start, end):
             i = i +1
 
     print ""
-    print "clauseElements are: "
+    print "clauseElements are:"
     for i in clauseElements.keys():
         element = clauseElements[i]
         if isinstance(element, Predicate):
-            print "clause has predicate: ", element.printPredicate()
+            print "clause has predicate: ", element.printPredicate(), " and it's negated = ", element.negated
         else:
-            print "clause has term :", element.printTerm()
+            print "clause has term :", element.printTerm(), " and it's negated = ", element.negated
+
+    print ""
     
 
 # start inclusive, end exclusive
 def getPredicate(start, end, clause, negated):
     name = clause[start]
-    print "getPredicate called with: ", clause[start:end], "its name is: ", name, "and it is negated=", negated, "start: ", start, "end: ", end
+    print "getPredicate called with: ", clause[start:end], "its name is: ", name
     start = start + 1
-    length = end - start
     values = {}
     i = start
+    newNegated = False
     while i < end:
-        #print "i is: ", i
+        #print "clause[i] is: ", clause[i], "clause[i+1] is: ", clause[i+1]
         if clause[i] == "~":
             #print "hit '~' in ", i, "th element"
-            negated = True
+            newNegated = True
             i = i + 1
 
         elif clause[i] == "," or clause[i] == "(" or clause[i] == " " or clause[i] == ")":
@@ -156,13 +158,13 @@ def getPredicate(start, end, clause, negated):
             i = i+1
             continue
 
-        elif (i+1 < length) and (clause[i+1] == "(") :
+        elif (i+1 < end) and (clause[i+1] == "(") :
             #print "hit '(' in ", i + 1, "th element"
             neededClosed = 1
             newStart = i
             newEnd = i + 1
             k = i + 2
-            while(k < length and neededClosed > 0):
+            while(k < end and neededClosed > 0):
                 #print "k is :", k
                 if (clause[k] == "("):
                     neededClosed = neededClosed + 1
@@ -176,16 +178,16 @@ def getPredicate(start, end, clause, negated):
                         newEnd = k + 1
                         p = getPredicate(newStart, newEnd, clause, negated)
                         values[p.name] = p
-                        negated = False
+                        newNegated = False
                         break
                 k = k + 1
 
             i = i + 1
 
         else:
-            t = getTerm(clause[i], negated)
+            t = getTerm(clause[i], newNegated)
             values[t.name] = t
-            negated = False
+            newNegated = False
             i = i +1
 
     predicate = Predicate(name, negated, values)
@@ -195,7 +197,7 @@ def getPredicate(start, end, clause, negated):
 
 def getTerm(name, negated):
     #TODO: check if it's constant or not
-    print "getTerm called with ", name, "and it is negated=", negated
+    print "getTerm called with ", name
     return Term(name, negated, False)
 
 def main():

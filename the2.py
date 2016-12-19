@@ -1,4 +1,3 @@
-# TODO: Inputs
 # TODO: Unifier
 # TODO: Set of Support structure
 # TODO: Resolution algorithm altogether
@@ -6,9 +5,20 @@
 # Clause has predicates as a dictionary
 class Clause(object):
 
-    def __init__(self, values):
-        self.clauseElements = {}
+    def __init__(self, clauseElements):
+        self.clauseElements = clauseElements
 
+    def printClause(self):
+        print ""
+        print "clauseElements are:"
+        for i in self.clauseElements.keys():
+            element = self.clauseElements[i]
+            if isinstance(element, Predicate):
+                print "clause has predicate: ", element.printPredicate(), " and it's negated = ", element.negated
+            else:
+                print "clause has term :", element.printTerm(), " and it's negated = ", element.negated
+
+        print ""
 
 # A predicate has:
 # a name - function name that is definitive
@@ -72,11 +82,16 @@ def unifier(clause1, clause2):
     pass
 
 def resolution(kbAndGoals, goals):
-    pass
+    print "---in resolution---"
+    print "kbAndGoals: "
+    for i in kbAndGoals:
+        i.printClause()
+    print "goals: "
+    for i in goals:
+        i.printClause()
 
 #TODO: length is always 1 more than it should be
-def inputHandler(clause, start, end):
-    print "clause is: ", clause
+def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
     length = end - start
     negated = False
     i = start
@@ -126,16 +141,15 @@ def inputHandler(clause, start, end):
             negated = False
             i = i +1
 
-    print ""
-    print "clauseElements are:"
-    for i in clauseElements.keys():
-        element = clauseElements[i]
-        if isinstance(element, Predicate):
-            print "clause has predicate: ", element.printPredicate(), " and it's negated = ", element.negated
-        else:
-            print "clause has term :", element.printTerm(), " and it's negated = ", element.negated
+    
 
-    print ""
+    c = Clause(clauseElements)
+
+    kbAndGoals.append(c)
+
+    if isGoal:
+        print "appended to goals"
+        goals.append(c)
     
 
 # start inclusive, end exclusive
@@ -210,8 +224,17 @@ def main():
     print "numOfGoals ", numOfGoals    
 
     for testCaseCount in range(0, NUMBER_OF_TESTS):
+        kbAndGoals = []
+        goals = []
+
         for clauseCount in range(0, numOfClauses):
             clause = str(inp.readline().split("/n")[0])
-            inputHandler(clause, 0, len(clause) - 1)
+            inputHandler(clause, 0, len(clause) - 1, kbAndGoals)
+
+        for clauseCount in range(0, numOfGoals):
+            clause = str(inp.readline().split("/n")[0])
+            inputHandler(clause, 0, len(clause) - 1, kbAndGoals, True, goals)
+
+        resolution(kbAndGoals, goals)
 
 main()

@@ -1,5 +1,4 @@
 # TODO: Unifier
-# TODO: Set of Support structure
 # TODO: Resolution algorithm altogether
 
 # Clause has predicates as a dictionary
@@ -7,6 +6,7 @@ class Clause(object):
 
     def __init__(self, clauseElements):
         self.clauseElements = clauseElements
+        self.size = len(self.clauseElements.keys())
 
     def printClause(self):
         print ""
@@ -20,27 +20,42 @@ class Clause(object):
 
         print ""
 
+    def isEqual(self, aClause):
+        if self.size != aClause.size:
+            return False
+
+        for i in self.clauseElements.keys():
+            element1 = self.clauseElements[i]
+            element2 = aClause.clauseElements[i]            
+            if type(element1) == type(element2):
+                if not element1.isEqual(element2):
+                    return False
+            else:
+                return False
+
+        return True
+
 # A predicate has:
 # a name - function name that is definitive
 # negated - a flag to see if this predicate is negated or not
 # values - either False or a dictionary of values, can be a term (variable or constant) or again a predicate
-# numOfValues - how many values are there
+# size - how many values are there
 class Predicate(object):
 
     def __init__(self, name, negated, values):
         self.name = name
         self.negated = negated
         self.values = values
-        self.numOfValues = len(self.values.keys())
+        self.size = len(self.values.keys())
 
     def setValue(self, key, value):
         self.values[key] = value
-        self.numOfValues = self.numOfValues + 1
+        self.size = self.size + 1
 
     # For unification. It changes all the x terms inside this predicate to y
     # If found, recursively checks the predicates inside values too
     # TODO: write this method
-    def changeTerms(self, x, y):
+    def replaceTerms(self, termToBeChanged, newTerm):
         pass
 
     def changeName(self, newName):
@@ -58,37 +73,76 @@ class Predicate(object):
             else:
                 res = res + v.printTerm()
 
-            if count < self.numOfValues:
+            if count < self.size:
                 res = res + ", "
 
         res = res + ")"
         return res
 
-class Term(object):
+    def isEqual(self, aPredicate):
+        notSameSize = (self.size != aPredicate.size)
+        notSameName =(self.name != aPredicate.name)
+        notSameNegated = (self.negated != aPredicate.negated)
+        if notSameSize or notSameName or notSameNegated:
+            return False
 
-    def __init__(self, name, negated, isConstant):
+        for i in self.values.keys():
+            element1 = self.values[i]
+            element2 = aPredicate.values[i]            
+            if type(element1) == type(element2):
+                if not element1.isEqual(element2):
+                    return False
+            else:
+                return False
+
+        return True
+
+
+#TODO: check if it's constant or not
+class Term(object):
+    
+    def __init__(self, name, negated):
         self.name = name
         self.negated = negated
-        self.isConstant = isConstant
+        self.isConstant = False
 
-    def changeName(self, newName):
+    def replaceName(self, newName):
         self.name = newName
 
     def printTerm(self):
         return self.name
 
+    def isEqual(self, aTerm):
+        return (self.name == aTerm.name) and (self.negated == aTerm.negated)
 
-def unifier(clause1, clause2):
-    pass
+
+def unify(clause1, clause2):
+    equalAsPredicate = isinstance(clause1, Predicate) and isinstance(clause2, Predicate) and clause1.isEqual(clause2)
+    equalAsPredicate = isinstance(clause1, Predicate) and isinstance(clause2, Predicate) and clause1.isEqual(clause2)
+    #if 
+
+    #if clause1.size == 1:
+
+    #elif clause2.size == 1:
+
 
 def resolution(kbAndGoals, goals):
     print "---in resolution---"
-    print "kbAndGoals: "
-    for i in kbAndGoals:
-        i.printClause()
-    print "goals: "
+    print "############# kbAndGoals ##################"
+    for i in range(0, len(kbAndGoals)):
+        kbAndGoals[i].printClause()
+        print "isEqual to themselves"
+        print kbAndGoals[i].isEqual(kbAndGoals[i])
+        
+        print "equal to one next to it"
+        if i+1 < len(kbAndGoals):
+            print kbAndGoals[i].isEqual(kbAndGoals[i+1])            
+
+    print "############# goals ####################"
     for i in goals:
         i.printClause()
+
+    
 
 #TODO: length is always 1 more than it should be
 def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
@@ -210,9 +264,9 @@ def getPredicate(start, end, clause, negated):
 
 
 def getTerm(name, negated):
-    #TODO: check if it's constant or not
     print "getTerm called with ", name
-    return Term(name, negated, False)
+    return Term(name, negated)
+
 
 def main():
     inp = open('input.txt', 'r')
@@ -226,15 +280,12 @@ def main():
     for testCaseCount in range(0, NUMBER_OF_TESTS):
         kbAndGoals = []
         goals = []
-
         for clauseCount in range(0, numOfClauses):
             clause = str(inp.readline().split("/n")[0])
             inputHandler(clause, 0, len(clause) - 1, kbAndGoals)
-
         for clauseCount in range(0, numOfGoals):
             clause = str(inp.readline().split("/n")[0])
             inputHandler(clause, 0, len(clause) - 1, kbAndGoals, True, goals)
-
         resolution(kbAndGoals, goals)
 
 main()

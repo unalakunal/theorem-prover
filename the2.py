@@ -1,6 +1,9 @@
 # TODO: Unifier
 # TODO: Resolution algorithm altogether
 
+from copy import copy, deepcopy
+from string import ascii_uppercase
+
 # Clause has predicates as a dictionary
 class Clause(object):
 
@@ -35,6 +38,12 @@ class Clause(object):
 
         return True
 
+    def getClauseElements(self):
+        res = []
+        for i in self.clauseElements.keys():
+            res.append(self.clauseElements[i])
+        return res
+
 # A predicate has:
 # a name - function name that is definitive
 # negated - a flag to see if this predicate is negated or not
@@ -52,14 +61,28 @@ class Predicate(object):
         self.values[key] = value
         self.size = self.size + 1
 
-    # For unification. It changes all the x terms inside this predicate to y
-    # If found, recursively checks the predicates inside values too
-    # TODO: write this method
-    def replaceTerms(self, termToBeChanged, newTerm):
-        pass
+    def getValues(self):
+        res = []
+        for i in self.values.keys():
+            res.append(self.values[i])
+        return res
 
     def changeName(self, newName):
         self.name = newName
+
+    # newValue might be a predicate or 
+    def changeTermTo(self, term, newValue):
+        for i in self.values.keys():
+            value = self.values[i]
+
+            if isinstance(value, Term) and value.name == term.name:
+                negatedBefore = value.negated
+                newValue.negated = negatedBefore
+                self.values[i] = newValue
+
+            elif isinstance(value, Predicate):
+                value.changeTermTo(term, newValue)
+
 
     def printPredicate(self):
         res = self.name + "("
@@ -97,14 +120,30 @@ class Predicate(object):
 
         return True
 
+    def termOccurs(self, term):
+        print "see if ", term, " occurs in ", self.printPredicate()
+        if self.name == term.name:
+            print "True"
+            return True
 
-#TODO: check if it's constant or not
+        else:
+            for i in self.values.keys():
+                if self.values[i].occurs(term):
+                    print "True"            
+                    return True
+        
+        print "False"
+        return False
+
 class Term(object):
     
     def __init__(self, name, negated):
         self.name = name
         self.negated = negated
-        self.isConstant = False
+        if name in ascii_uppercase:
+            self.isConstant = True
+        else:
+            self.isConstant = False
 
     def replaceName(self, newName):
         self.name = newName
@@ -115,16 +154,75 @@ class Term(object):
     def isEqual(self, aTerm):
         return (self.name == aTerm.name) and (self.negated == aTerm.negated)
 
+    def termOccurs(self, term):
+        return (self.name == aTerm.name)
 
-def unify(clause1, clause2):
-    equalAsPredicate = isinstance(clause1, Predicate) and isinstance(clause2, Predicate) and clause1.isEqual(clause2)
-    equalAsPredicate = isinstance(clause1, Predicate) and isinstance(clause2, Predicate) and clause1.isEqual(clause2)
-    #if 
+# elements are tuple of literals
+def unify(element1, element2):
+    print "elements ", element1, element2
+    len1 = len(element1)
+    len2 = len(element2)    
 
-    #if clause1.size == 1:
+    if  len1 != len2:
+        return None
+    
+    if len1 == 1:
+        if element1 == element2:
+            return []
+        if not (element1[0] in ascii_uppercase):
+            if element1[0] in element2:
+                return None
+            else:
+                return [(element1[0], element2[0])]
+        if not (element2[0] in ascii_uppercase):
+            return [(element2[0], element1[0])]
 
-    #elif clause2.size == 1:
+    if len2 == 1:
+        if element2 == element1:
+            return []
+        if not (element2 in ascii_uppercase):
+            if element2[0] in element1:
+                return None
+            else:
+                return [(element2[0], element1[0])]
+        if not (element1[0] in ascii_uppercase):
+            return [(element1[0], element2[0])]
 
+    f1, t1 = tuple([element1[0]]), element1[1:]
+    f2, t2 = tuple([element2[0]]), element2[1:]
+
+    z1 = unify(f1, f2)
+    print "z1 is", z1
+
+    if z1 == None:
+        return None
+
+    g1 = apply(z1, t1)
+    g2 = apply(z1, t2)
+
+    print "g1 ", g1, "g2 ", g2
+
+    z2 = unify(g1, g2)
+
+    if not z2:
+        return None
+
+    print "z1", z1, "z2", z2
+
+    return z1 + z2
+
+# unifyList is a list of tuples that contains unifiers
+# tupleToApply is a tuple that if it contains values to be unified, is going to be updated
+def apply(unifyList, tupleToApply):
+    print "in apply ", tupleToApply, unifyList
+    if len(tupleToApply) == 0:
+        return tupleToApply
+    for u in unifyList:
+        for j in tupleToApply:
+            if j == u[0]:
+                j = u[1]
+
+    return tupleToApply
 
 def resolution(kbAndGoals, goals):
     print "---in resolution---"
@@ -142,6 +240,12 @@ def resolution(kbAndGoals, goals):
     for i in goals:
         i.printClause()
 
+    #TODO: add unification middleware to convert predicates etc to string
+
+    print ""
+    print "unification"
+    print  unify(("r", "A"), ("r", "y"))
+    print unify(("p", "y"), ("p", ("f", "x")))
     
 
 #TODO: length is always 1 more than it should be

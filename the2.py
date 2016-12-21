@@ -29,7 +29,7 @@ class Clause(object):
 
         for i in self.clauseElements.keys():
             element1 = self.clauseElements[i]
-            element2 = aClause.clauseElements[i]            
+            element2 = aClause.clauseElements[i]
             if type(element1) == type(element2):
                 if not element1.isEqual(element2):
                     return False
@@ -159,9 +159,12 @@ class Term(object):
 
 # elements are tuple of literals
 def unify(element1, element2):
-    print "elements ", element1, element2
+    #print "elements ", element1, element2
     len1 = len(element1)
     len2 = len(element2)    
+
+    if len1 > 1 and len2 > 1 and element1[0] != element2[0]:
+        return None
 
     if  len1 != len2:
         return None
@@ -173,9 +176,9 @@ def unify(element1, element2):
             if element1[0] in element2:
                 return None
             else:
-                return [(element1[0], element2[0])]
+                return [[element1[0], element2[0]]]
         if not (element2[0] in ascii_uppercase):
-            return [(element2[0], element1[0])]
+            return [[element2[0], element1[0]]]
 
     if len2 == 1:
         if element2 == element1:
@@ -184,15 +187,15 @@ def unify(element1, element2):
             if element2[0] in element1:
                 return None
             else:
-                return [(element2[0], element1[0])]
+                return [[element2[0], element1[0]]]
         if not (element1[0] in ascii_uppercase):
-            return [(element1[0], element2[0])]
+            return [[element1[0], element2[0]]]
 
-    f1, t1 = tuple([element1[0]]), element1[1:]
-    f2, t2 = tuple([element2[0]]), element2[1:]
+    f1, t1 = [element1[0]], element1[1:]
+    f2, t2 = [element2[0]], element2[1:]
 
     z1 = unify(f1, f2)
-    print "z1 is", z1
+    #print "z1 is", z1
 
     if z1 == None:
         return None
@@ -200,21 +203,21 @@ def unify(element1, element2):
     g1 = apply(z1, t1)
     g2 = apply(z1, t2)
 
-    print "g1 ", g1, "g2 ", g2
+    #print "g1 ", g1, "g2 ", g2
 
     z2 = unify(g1, g2)
 
     if not z2:
         return None
 
-    print "z1", z1, "z2", z2
+    #print "z1", z1, "z2", z2
 
     return z1 + z2
 
 # unifyList is a list of tuples that contains unifiers
 # tupleToApply is a tuple that if it contains values to be unified, is going to be updated
 def apply(unifyList, tupleToApply):
-    print "in apply ", tupleToApply, unifyList
+    #print "in apply ", tupleToApply, unifyList
     if len(tupleToApply) == 0:
         return tupleToApply
     for u in unifyList:
@@ -229,24 +232,38 @@ def resolution(kbAndGoals, goals):
     print "############# kbAndGoals ##################"
     for i in range(0, len(kbAndGoals)):
         kbAndGoals[i].printClause()
-        print "isEqual to themselves"
-        print kbAndGoals[i].isEqual(kbAndGoals[i])
-        
-        print "equal to one next to it"
-        if i+1 < len(kbAndGoals):
-            print kbAndGoals[i].isEqual(kbAndGoals[i+1])            
 
     print "############# goals ####################"
     for i in goals:
         i.printClause()
 
-    #TODO: add unification middleware to convert predicates etc to string
-
     print ""
-    print "unification"
-    print  unify(("r", "A"), ("r", "y"))
-    print unify(("p", "y"), ("p", ("f", "x")))
-    
+
+    for i in kbAndGoals:
+        for p1 in i.getClauseElements():
+            for j in goals:
+                for p2 in j.getClauseElements():
+                    e1 = unifyMiddleware(p1)
+                    e2 = unifyMiddleware(p2)
+                    res = unify(e1, e2)
+                    print "result from unifying", e1, "and", e2, "is", res
+
+    #print "unification"
+    #print unify(("r", "A"), ("r", "y"))
+    #print unify(("p", "y"), ("p", ("f", "x")))
+
+
+# TODO: fix
+def unifyMiddleware(predicate):
+    values = predicate.values
+    e = [predicate.name]
+    for i in predicate.values.keys():
+        if isinstance(values[i], Term):
+            e.append(values[i].name)
+        else:
+            e.append(unifyMiddleware(values[i]))
+    return e
+
 
 #TODO: length is always 1 more than it should be
 def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
@@ -373,7 +390,7 @@ def getTerm(name, negated):
 
 
 def main():
-    inp = open('input.txt', 'r')
+    inp = open('input_book.txt', 'r')
     NUMBER_OF_TESTS = int(inp.readline().split("/n")[0])
     numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
     numOfClauses = int(numOfClauses)

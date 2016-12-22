@@ -1,5 +1,12 @@
-# TODO: Unifier
 # TODO: Resolution algorithm altogether
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# TODO: What if there are two predicates with the same name in the clause, or recursive predicates?
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# TODO: What if there exists a unification like x/p(y)
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# TODO: What if I add an existing clause after substituting
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# TODO: Proper output format needed
 
 from copy import copy, deepcopy
 from string import ascii_uppercase
@@ -13,14 +20,15 @@ class Clause(object):
 
     def printClause(self):
         print ""
-        print "clauseElements are:"
+        print "||||||printClause starts||||||"
         for i in self.clauseElements.keys():
             element = self.clauseElements[i]
             if isinstance(element, Predicate):
-                print "clause has predicate: ", element.printPredicate(), " and it's negated = ", element.negated
+                print "clause has predicate: ", element.printPredicate(True)
             else:
-                print "clause has term :", element.printTerm(), " and it's negated = ", element.negated
+                print "clause has term :", element.printTerm(True)
 
+        print "||||||printClause ends||||||"        
         print ""
 
     def isEqual(self, aClause):
@@ -70,22 +78,27 @@ class Predicate(object):
     def changeName(self, newName):
         self.name = newName
 
-    # newValue might be a predicate or 
-    def changeTermTo(self, term, newValue):
+    def changeTermTo(self, termName, newValue):
+        if self.name == termName:
+            self.name = newValue
+
         for i in self.values.keys():
             value = self.values[i]
 
-            if isinstance(value, Term) and value.name == term.name:
+            if isinstance(value, Term) and value.name == termName:
                 negatedBefore = value.negated
-                newValue.negated = negatedBefore
-                self.values[i] = newValue
+                newTerm = Term(newValue, negatedBefore)
+                self.values[i] = newTerm
 
             elif isinstance(value, Predicate):
-                value.changeTermTo(term, newValue)
+                value.changeTermTo(termName, newValue)
 
 
-    def printPredicate(self):
+    def printPredicate(self, showNegated=False):
         res = self.name + "("
+        if showNegated:
+            if self.negated:
+                res = "~" + self.name + "("
         count = 0
         for i in self.values.keys():
             count = count + 1
@@ -157,18 +170,25 @@ class Term(object):
     def termOccurs(self, term):
         return (self.name == aTerm.name)
 
-# elements are tuple of literals
+# elements are list of atoms
 def unify(element1, element2):
-    #print "elements ", element1, element2
     len1 = len(element1)
     len2 = len(element2)    
+
+    if  len1 != len2:
+        return None
 
     if len1 > 1 and len2 > 1 and element1[0] != element2[0]:
         return None
 
-    if  len1 != len2:
-        return None
-    
+    if len1 == 1:
+        if isinstance(element1[0], list):
+            element1 = element1[0]
+            len1 = len(element1)    
+        if isinstance(element2[0], list):
+            element2 = element2[0]
+            len2 = len(element2)
+
     if len1 == 1:
         if element1 == element2:
             return []
@@ -227,8 +247,36 @@ def apply(unifyList, tupleToApply):
 
     return tupleToApply
 
+def substituteSingleClause(c, unification, changedPredicateName, newElements):
+    if len(unification) == 0:
+        for i in c.clauseElements.keys():
+            if c.clauseElements[i]:
+                newElements[i] = c.clauseElements[i]
+    for i in c.clauseElements.keys():
+        for unifier in unification:
+            # TODO: unify to predicate
+            newPred = c.clauseElements[i]
+            newPred.changeTermTo(unifier[0], unifier[1])
+            if newPred.name != changedPredicateName:
+                newElements[newPred.name] = newPred
+
+
+# substitute two clauses given the unification and the mutual predicate used for unification
+def substitute(c1, c2, unification, changedPredicateName):
+    if len(c1.getClauseElements()) == 1 and len(c2.getClauseElements()) == 1:
+        return None
+    newElements = {}
+    print "substituting", c1.printClause(), "and", c2.printClause()
+    
+    substituteSingleClause(c1, unification, changedPredicateName, newElements)
+    substituteSingleClause(c2, unification, changedPredicateName, newElements)
+
+    newClause = Clause(newElements)
+
+    return newClause 
+    
+
 def resolution(kbAndGoals, goals):
-    print "---in resolution---"
     print "############# kbAndGoals ##################"
     for i in range(0, len(kbAndGoals)):
         kbAndGoals[i].printClause()
@@ -238,22 +286,36 @@ def resolution(kbAndGoals, goals):
         i.printClause()
 
     print ""
+    print "------------fun begins------------"    
 
-    for i in kbAndGoals:
-        for p1 in i.getClauseElements():
-            for j in goals:
-                for p2 in j.getClauseElements():
-                    e1 = unifyMiddleware(p1)
-                    e2 = unifyMiddleware(p2)
-                    res = unify(e1, e2)
-                    print "result from unifying", e1, "and", e2, "is", res
+    count = 1
+    for j in goals:
+        print ""
+        print "SELECTED FROM GOAL: ", j.printClause()
+        print ""
+        
+        for p2 in j.getClauseElements():
+            for i in kbAndGoals:
+                for p1 in i.getClauseElements():
+                    if p1.name == p2.name and p1.negated != p2.negated:
+                        print "p1 and p2 are unifiable where p1:", p1.printPredicate(True), "p2:", p2.printPredicate(True)
+                        e1 = unifyMiddleware(p1)
+                        e2 = unifyMiddleware(p2)
+                        res = unify(e1, e2)
+                        print "result of unification", res
+                        if res != None:
+                            copy1 = deepcopy(i)
+                            copy2 = deepcopy(j)
+                            newClause = substitute(copy1, copy2, res, p1.name)
+                            if newClause == None:
+                                print "reached contradiction from", copy1.printClause(), copy2.printClause() 
+                                return None
+                            print "newClause", count, newClause.printClause()
+                            count = count + 1
+                            kbAndGoals.append(newClause)
+                            goals.append(newClause)
 
-    #print "unification"
-    #print unify(("r", "A"), ("r", "y"))
-    #print unify(("p", "y"), ("p", ("f", "x")))
 
-
-# TODO: fix
 def unifyMiddleware(predicate):
     values = predicate.values
     e = [predicate.name]
@@ -390,7 +452,7 @@ def getTerm(name, negated):
 
 
 def main():
-    inp = open('input_book.txt', 'r')
+    inp = open('input.txt', 'r')
     NUMBER_OF_TESTS = int(inp.readline().split("/n")[0])
     numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
     numOfClauses = int(numOfClauses)

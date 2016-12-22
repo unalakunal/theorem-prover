@@ -1,0 +1,115 @@
+numOfClauses  3
+numOfGoals  1
+getPredicate called with:  p(A, f(t)) its name is:  p
+getTerm called with  A
+getPredicate called with:  f(t) its name is:  f
+getTerm called with  t
+getPredicate called with:  q(z) its name is:  q
+getTerm called with  z
+getPredicate called with:  p(z, f(B)) its name is:  p
+getTerm called with  z
+getPredicate called with:  f(B) its name is:  f
+getTerm called with  B
+getPredicate called with:  r(y) its name is:  r
+getTerm called with  y
+getPredicate called with:  q(y) its name is:  q
+getTerm called with  y
+getPredicate called with:  r(A) its name is:  r
+getTerm called with  A
+appended to goals
+############# kbAndGoals ##################
+
+||||||printClause starts||||||
+clause has predicate:  p(A, f(t))
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  q(z)
+clause has predicate:  ~p(z, f(B))
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  ~q(y)
+clause has predicate:  r(y)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  ~r(A)
+||||||printClause ends||||||
+
+############# goals ####################
+
+||||||printClause starts||||||
+clause has predicate:  ~r(A)
+||||||printClause ends||||||
+
+
+------------fun begins------------
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~r(A)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: r(y) p2: ~r(A)
+result of unification [['y', 'A']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  ~q(y)
+clause has predicate:  r(y)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~r(A)
+||||||printClause ends||||||
+
+None
+newClause 1 
+||||||printClause starts||||||
+clause has predicate:  ~q(A)
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~q(A)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: q(z) p2: ~q(A)
+result of unification [['z', 'A']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  q(z)
+clause has predicate:  ~p(z, f(B))
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~q(A)
+||||||printClause ends||||||
+
+None
+newClause 2 
+||||||printClause starts||||||
+clause has predicate:  ~p(A, f(B))
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~p(A, f(B))
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: p(A, f(t)) p2: ~p(A, f(B))

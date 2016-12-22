@@ -1,0 +1,436 @@
+numOfClauses  8
+numOfGoals  1
+getPredicate called with:  a(x) its name is:  a
+getTerm called with  x
+getPredicate called with:  f(y) its name is:  f
+getTerm called with  y
+getPredicate called with:  s(x,y,z) its name is:  s
+getTerm called with  x
+getTerm called with  y
+getTerm called with  z
+getPredicate called with:  h(z) its name is:  h
+getTerm called with  z
+getPredicate called with:  c(x) its name is:  c
+getTerm called with  x
+getPredicate called with:  m(x) its name is:  m
+getTerm called with  x
+getPredicate called with:  o(N,x) its name is:  o
+getTerm called with  N
+getTerm called with  x
+getPredicate called with:  s(W,x,N) its name is:  s
+getTerm called with  W
+getTerm called with  x
+getTerm called with  N
+getPredicate called with:  e(x,A) its name is:  e
+getTerm called with  x
+getTerm called with  A
+getPredicate called with:  h(x) its name is:  h
+getTerm called with  x
+getPredicate called with:  m(x) its name is:  m
+getTerm called with  x
+getPredicate called with:  w(x) its name is:  w
+getTerm called with  x
+getPredicate called with:  o(N,M) its name is:  o
+getTerm called with  N
+getTerm called with  M
+getPredicate called with:  a(w) its name is:  a
+getTerm called with  w
+getPredicate called with:  m(M) its name is:  m
+getTerm called with  M
+getPredicate called with:  e(N,A) its name is:  e
+getTerm called with  N
+getTerm called with  A
+getPredicate called with:  c(W) its name is:  c
+getTerm called with  W
+appended to goals
+############# kbAndGoals ##################
+
+||||||printClause starts||||||
+clause has predicate:  ~a(x)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, x, z)
+clause has predicate:  c(x)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  s(x, W, N)
+clause has predicate:  ~m(x)
+clause has predicate:  ~o(x, N)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  h(x)
+clause has predicate:  ~e(A, x)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  ~m(x)
+clause has predicate:  w(x)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  o(M, N)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  a(w)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  m(M)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  e(A, N)
+||||||printClause ends||||||
+
+
+||||||printClause starts||||||
+clause has predicate:  ~c(W)
+||||||printClause ends||||||
+
+############# goals ####################
+
+||||||printClause starts||||||
+clause has predicate:  ~c(W)
+||||||printClause ends||||||
+
+
+------------fun begins------------
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~c(W)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: c(x) p2: ~c(W)
+result of unification [['x', 'W']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  ~a(x)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, x, z)
+clause has predicate:  c(x)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~c(W)
+||||||printClause ends||||||
+
+None
+newClause 1 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: a(w) p2: ~a(W)
+result of unification [['w', 'W']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  a(w)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 2 
+||||||printClause starts||||||
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+p1 and p2 are unifiable where p1: h(x) p2: ~h(z)
+result of unification [['x', 'z']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  h(x)
+clause has predicate:  ~e(A, x)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 3 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, z)
+result of unification None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: h(x) p2: ~h(z)
+result of unification [['x', 'z']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  h(x)
+clause has predicate:  ~e(A, x)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~h(z)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 4 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, z)
+result of unification None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: a(w) p2: ~a(W)
+result of unification [['w', 'W']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  a(w)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 5 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, z)
+result of unification None
+p1 and p2 are unifiable where p1: e(A, N) p2: ~e(A, z)
+result of unification [['z', 'N']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  e(A, N)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 6 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, z)
+result of unification None
+p1 and p2 are unifiable where p1: e(A, N) p2: ~e(A, z)
+result of unification [['z', 'N']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  e(A, N)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 7 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, z)
+result of unification None
+p1 and p2 are unifiable where p1: e(A, N) p2: ~e(A, z)
+result of unification [['z', 'N']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  e(A, N)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, z)
+clause has predicate:  ~e(A, z)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 8 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: a(w) p2: ~a(W)
+result of unification [['w', 'W']]
+substituting 
+||||||printClause starts||||||
+clause has predicate:  a(w)
+||||||printClause ends||||||
+
+None and 
+||||||printClause starts||||||
+clause has predicate:  ~a(W)
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+newClause 9 
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, N)
+result of unification None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, N)
+result of unification None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, N)
+result of unification None
+
+SELECTED FROM GOAL:  
+||||||printClause starts||||||
+clause has predicate:  ~s(y, W, N)
+clause has predicate:  ~f(y)
+||||||printClause ends||||||
+
+None
+
+p1 and p2 are unifiable where p1: s(x, W, N) p2: ~s(y, W, N)
+result of unification None

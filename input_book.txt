@@ -1,6 +1,6 @@
 1
 8 1
-~a(x), ~w(y), ~s(x,y,z), ~h(z), c(x)
+~a(x), ~f(y), ~s(x,y,z), ~h(z), c(x)
 ~m(x), ~o(N,x), s(W,x,N)
 ~e(x,A), h(x)
 ~m(x), w(x)

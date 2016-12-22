@@ -3,19 +3,19 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # TODO: What if there exists a unification like x/p(y)
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO: What if I add an existing clause after substituting
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO: change clause and predicate dictionaries to arrays, for cases like k(J,T), k(C,T    )
 
 from copy import copy, deepcopy
 from string import ascii_uppercase
 import sys
 
 # Clause has predicates as a dictionary where its keys are full string names, and values are objects
+# If a clause is a result of a resolution, we need their parents to backtrack print it
 class Clause(object):
-    def __init__(self, clauseElements):
+    def __init__(self, clauseElements, parent1=None, parent2=None):
         self.clauseElements = clauseElements
         self.size = len(self.clauseElements.keys())
+        self.parent1 = parent1
+        self.parent2 = parent2
 
     def printClause(self, returnString=False):
         res = ""
@@ -25,7 +25,7 @@ class Clause(object):
             if isinstance(element, Predicate):
                 res = res + element.printPredicate(True) + ","
             else:
-                res = res + element.printTerm(True)
+                res = res + element.printTerm()
 
         res = res[0:len(res)-1]
         if returnString:
@@ -57,6 +57,15 @@ class Clause(object):
         for i in keys:
             res.append(self.clauseElements[i])
         return res
+
+    def printParents(self):
+        if self.parent1:
+            print "first parent"
+            self.parent1.printClause()
+            print "second parent"            
+            self.parent2.printClause()            
+        else:
+            print "None"
 
 # A predicate has:
 # a name - function name that is definitive
@@ -314,7 +323,7 @@ def substitute(c1, c2, unification, changedPredicate1, changedPredicate2):
     substituteSingleClause(c2, unification, changedPredicate1, changedPredicate2, newElements)
 
     print "returning newElements as", newElements
-    newClause = Clause(newElements)
+    newClause = Clause(newElements, c1, c2)
 
     return newClause 
 
@@ -359,37 +368,44 @@ def resolution(kbAndGoals, goals):
                             newClause = substitute(copy1, copy2, res, p1, p2)
                             if newClause == "contradiction":
                                 print "reached contradiction from", copy1.printClause(), copy2.printClause()
-                                resolvents.append(("yes", j, i))
-                                printResolvents(resolvents)
+                                printResult(copy1, copy2)
                                 return None
                             print "newClause", count, newClause.printClause()
                             count = count + 1
                             print "before appending", len(kbAndGoals), len(goals)
                             safeAppend(kbAndGoals, newClause)
                             safeAppend(goals, newClause)
-                            print "after appending", len(kbAndGoals), len(goals)                            
+                            print "after appending", len(kbAndGoals), len(goals)
+                            newClause.printParents()
                             resolvents.append((j, i, newClause))
 
     print "no"
 
-def printResolvents(res):
+def printResult(lastClause1, lastClause2):
     print "yes"
-    for i in range(0, len(res)):
-        if isinstance(res[i][0], Clause):
-            sys.stdout.write(res[i][0].printClause(True))
-            sys.stdout.write("$")
-            sys.stdout.write(res[i][1].printClause(True))
-            sys.stdout.write("$")            
-            sys.stdout.write(res[i][2].printClause(True))        
-            sys.stdout.write("\n")
-        else:
-            sys.stdout.write(res[i][1].printClause(True))
-            sys.stdout.write("$")
-            sys.stdout.write(res[i][2].printClause(True))            
-            sys.stdout.write("$")
-            sys.stdout.write("empty_clause")
-            sys.stdout.write("\n")            
+    stack = [lastClause1, lastClause2]
+    res = [printResolution(lastClause1, lastClause2, "empty_clause")]
 
+    while len(stack) > 0:
+        a = deepcopy(stack[len(stack)-1])
+        del stack[len(stack)-1]
+        if a.parent1 != None and a.parent2 != None:
+            stack.append(a.parent1)
+            stack.append(a.parent2)
+            tempRes = printResolution(a.parent1, a.parent2, a)
+            res.append(tempRes)
+        
+    for i in res[::-1]:
+        print i
+
+
+def printResolution(r0 ,r1, r2):
+    if r2 == "empty_clause":
+        res = r0.printClause(True) + "$" + r1.printClause(True) + "$" + "empty_clause"
+    else:
+        res = r0.printClause(True) + "$" + r1.printClause(True) + "$" + r2.printClause(True)
+
+    return res
 
 def unifyMiddleware(predicate):
     values = predicate.values

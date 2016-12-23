@@ -1,0 +1,5 @@
+yes
+s(x),~a(x)$~s(M)$~a(M)
+~f(x),~c(y),a(x)$~a(M)$~c(y),~f(M)
+c(F)$~c(y),~f(M)$~f(M)
+f(M)$~f(M)$empty_clause

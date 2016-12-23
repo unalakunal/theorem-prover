@@ -7,6 +7,7 @@
 from copy import copy, deepcopy
 from string import ascii_uppercase
 import sys
+from collections import OrderedDict
 
 # Clause has predicates as a dictionary where its keys are full string names, and values are objects
 # If a clause is a result of a resolution, we need their parents to backtrack print it
@@ -30,8 +31,6 @@ class Clause(object):
         res = res[0:len(res)-1]
         if returnString:
             return res
-        else:
-            print res
 
     def isEqual(self, aClause):
         if self.size != aClause.size:
@@ -60,12 +59,10 @@ class Clause(object):
 
     def printParents(self):
         if self.parent1:
-            print "first parent"
             self.parent1.printClause()
-            print "second parent"            
             self.parent2.printClause()            
         else:
-            print "None"
+            return "None"
 
 # A predicate has:
 # a name - function name that is definitive
@@ -153,19 +150,15 @@ class Predicate(object):
         return True
 
     def termOccurs(self, term):
-        #print "see if ", term, " occurs in ", self.printPredicate()
         if self.name == term.name:
-            print "True"
             return True
 
         else:
             keys = self.values.keys()
             for i in keys:
                 if self.values[i].occurs(term):
-                    print "True"            
                     return True
         
-        print "False"
         return False
 
 class Term(object):
@@ -192,15 +185,12 @@ class Term(object):
 
 # elements are list of atoms
 def unify(element1, element2):
-    #print "inside unify: ", element1, element2
     len1 = len(element1)
     len2 = len(element2)    
 
     if  len1 != len2:
-        #print "returned 191"
         return None
     elif element1 == element2:
-        #print "returned 194"        
         return []
 
     # added for cases like [["f"]]
@@ -214,71 +204,49 @@ def unify(element1, element2):
 
     # added for cases like ["A"] ["A"]
     if (isinstance(element1[0], str) and (element1[0] in ascii_uppercase) and len1 == 1) and (isinstance(element2[0], str) and(element2[0] in ascii_uppercase) and len2 == 1):
-        #print "returned 208"
         return None
-
-    #if len1 > 1 and len2 > 1 and element1[0] != element2[0]:
-    #    return None
 
     if len1 == 1:
         if element1 == element2:
-            #print "returned 216"                    
             return []
         if not (element1[0] in ascii_uppercase):
             if element1[0] in element2:
-                #print "returned None in 220"                
                 return None
             else:
-                #print "returned 223"        
                 return [[element1[0], element2[0]]]
         if not (element2[0] in ascii_uppercase):
-            #print "returned 226"                
             return [[element2[0], element1[0]]]
 
     if len2 == 1:
         if element2 == element1:
-            #print "returned 231"
             return []
         if not (element2[0] in ascii_uppercase):
             if element2[0] in element1:
-                #print "returned 235"                                
                 return None
             else:
-                #print "returned 238"        
                 return [[element2[0], element1[0]]]
         if not (element1[0] in ascii_uppercase):
-            #print "returned 241"
             return [[element1[0], element2[0]]]
 
     f1, t1 = [element1[0]], element1[1:]
     f2, t2 = [element2[0]], element2[1:]
 
     z1 = unify(f1, f2)
-    #print "z1 is", z1
-
     if z1 == None:
-        #print "returned 251"        
         return None
 
     g1 = apply(z1, t1)
     g2 = apply(z1, t2)
 
-    #print "g1 ", g1, "g2 ", g2
-
     z2 = unify(g1, g2)
-
     if z2 == None:
-        #print "returned 262"
         return None
-
-    #print "z1", z1, "z2", z2
 
     return z1 + z2
 
 # unifyList is a list of tuples that contains unifiers
 # tupleToApply is a tuple that if it contains values to be unified, is going to be updated
 def apply(unifyList, tupleToApply):
-    #print "in apply ", tupleToApply, unifyList
     if len(tupleToApply) == 0:
         return tupleToApply
     for u in unifyList:
@@ -290,39 +258,31 @@ def apply(unifyList, tupleToApply):
 
 def substituteSingleClause(c, unification, changedPredicate1, changedPredicate2, newElements):
     if len(unification) == 0:
-        #print "unification returned empty list"
         keys = c.clauseElements.keys()
         for i in keys:
             if c.clauseElements[i]:
                 if (not c.clauseElements[i].isEqual(changedPredicate1)) and (not c.clauseElements[i].isEqual(changedPredicate2)):
-         #           print "and has a chance to be in newElements where changedPredicate1",changedPredicate1.printPredicate(), "changedPredicate2", changedPredicate2.printPredicate()
                     newElements[c.clauseElements[i].printPredicate()] = c.clauseElements[i]
     else:
         keys = c.clauseElements.keys()
         for i in keys:
             # TODO: unify to predicate
             newPred = deepcopy(c.clauseElements[i])
-          #  print "newPred is ", newPred.printPredicate()
             if (not newPred.isEqual(changedPredicate1)) and (not newPred.isEqual(changedPredicate2)):
                 for unifier in unification:
                     newPred.changeTermTo(unifier[0], unifier[1])
-           #     print "and has a chance to be in newElements where changedPredicate1",changedPredicate1.printPredicate(), "changedPredicate2", changedPredicate2.printPredicate()
                 newElements[newPred.printPredicate()] = newPred
 
 
 # substitute two clauses given the unification and the mutual predicate used for unification
 def substitute(c1, c2, unification, changedPredicate1, changedPredicate2):
-    #print "in substitute with", changedPredicate1.printPredicate(), changedPredicate2.printPredicate(), "where unification is: ", unification 
     if len(c1.getClauseElements()) == 1 and len(c2.getClauseElements()) == 1:
-     #   print "got contradiction where c1 is", c1.printClause(), "c2 is ", c2.printClause()
         return "contradiction"
-    newElements = {}
-    #print "substituting", c1.printClause(), "and", c2.printClause()
+    newElements = OrderedDict()
     
     substituteSingleClause(c1, unification, changedPredicate1, changedPredicate2, newElements)
     substituteSingleClause(c2, unification, changedPredicate1, changedPredicate2, newElements)
 
-    print "returning newElements as", newElements
     newClause = Clause(newElements, c1, c2)
 
     return newClause 
@@ -335,47 +295,26 @@ def safeAppend(arr, clause):
     
 
 def resolution(kbAndGoals, goals):
-    print "############# kbAndGoals ##################"
-    for i in range(0, len(kbAndGoals)):
-        kbAndGoals[i].printClause()
-
-    print "############# goals ####################"
-    for i in goals:
-        i.printClause()
-
-    print ""
-    print "------------fun begins------------"    
-
     count = 1
     resolvents = []
     for j in goals:
-        print "selected goal element is", j.printClause()
         for p2 in j.getClauseElements():
-            print "selected predicate from goal is", p2.printPredicate()    
             for i in kbAndGoals:
-                print "selected kbAndGoals element is", i.printClause()
                 for p1 in i.getClauseElements():
                     if p1.name == p2.name and p1.negated != p2.negated:
-                        print "p1 and p2 are unifiable where p1:", p1.printPredicate(True), "p2:", p2.printPredicate(True)
                         e1 = unifyMiddleware(p1)
                         e2 = unifyMiddleware(p2)
                         res = unify(e1, e2)
-                        print "result of unification", res
                         if res != None:
-                            copy1 = deepcopy(i)
-                            copy2 = deepcopy(j)
-                            print "copy1 is", copy1.printClause(), "copy2 is ", copy2.printClause()
+                            copy1 = deepcopy(j)
+                            copy2 = deepcopy(i)
                             newClause = substitute(copy1, copy2, res, p1, p2)
                             if newClause == "contradiction":
-                                print "reached contradiction from", copy1.printClause(), copy2.printClause()
                                 printResult(copy1, copy2)
                                 return None
-                            print "newClause", count, newClause.printClause()
                             count = count + 1
-                            print "before appending", len(kbAndGoals), len(goals)
                             safeAppend(kbAndGoals, newClause)
                             safeAppend(goals, newClause)
-                            print "after appending", len(kbAndGoals), len(goals)
                             newClause.printParents()
                             resolvents.append((j, i, newClause))
 
@@ -424,17 +363,13 @@ def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
     length = end - start
     negated = False
     i = start
-    #print "length is", length
-    clauseElements = {}
+    clauseElements = OrderedDict()
     while i < end:
-        #print "i is: ", i
         if clause[i] == "~":
-            #print "hit '~' in ", i, "th element"
             negated = True
             i = i + 1
 
         elif clause[i] == "," or clause[i] == "(" or clause[i] == " ":
-            #print "hit ',' in ", i, "th element"
             i = i+1
             continue
 
@@ -448,22 +383,18 @@ def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
             else:
                 negated = False
 
-            #print "hit '(' in ", i + 1, "th element"
             neededClosed = 1
             newStart = i
             newEnd = i + 1
             k = i + 2
             while(k < length and neededClosed > 0):
-                #print "k is :", k
                 if (clause[k] == "("):
                     neededClosed = neededClosed + 1
 
                 elif (clause[k] == ")"):
                     neededClosed = neededClosed -1
-                    #print "hit ')', neededClosed is: ", neededClosed
                     if neededClosed == 0:
                         i = k
-                        #print "hit ')' to close the predicate in ", k, "th element"
                         newEnd = k + 1
                         p = getPredicate(newStart, newEnd, clause, negated)
                         clauseElements[p.printPredicate()] = p
@@ -486,7 +417,6 @@ def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
     kbAndGoals.append(c)
 
     if isGoal:
-        print "appended to goals"
         goals.append(c)
     
 
@@ -494,18 +424,15 @@ def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
 def getPredicate(start, end, clause, negated):
     name = clause[start]
     start = start + 1
-    values = {}
+    values = OrderedDict()
     i = start
     newNegated = negated
     while i < end:
-        #print "clause[i] is: ", clause[i], "clause[i+1] is: ", clause[i+1]
         if clause[i] == "~":
-            #print "hit '~' in ", i, "th element"
             newNegated = True
             i = i + 1
 
         elif clause[i] == "," or clause[i] == "(" or clause[i] == " " or clause[i] == ")":
-            #print "hit ',' in ", i, "th element"
             i = i+1
             continue
 
@@ -515,16 +442,13 @@ def getPredicate(start, end, clause, negated):
             newEnd = i + 1
             k = i + 2
             while(k < end and neededClosed > 0):
-                #print "k is :", k
                 if (clause[k] == "("):
                     neededClosed = neededClosed + 1
 
                 elif (clause[k] == ")"):
                     neededClosed = neededClosed -1
-                    #print "hit ')', neededClosed is: ", neededClosed
                     if neededClosed == 0:
                         i = k
-                        #print "hit ')' to close the predicate in ", k, "th element"
                         newEnd = k + 1
                         p = getPredicate(newStart, newEnd, clause, newNegated)
                         values[p.name] = p
@@ -549,20 +473,18 @@ def getPredicate(start, end, clause, negated):
 
 
 def getTerm(name, negated):
-    #print "getTerm called with ", name
     return Term(name, negated)
 
 
 def main():
-    inp = open('input_book.txt', 'r')
+    inp = open('input.txt', 'r')
     NUMBER_OF_TESTS = int(inp.readline().split("/n")[0])
-    numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
-    numOfClauses = int(numOfClauses)
-    numOfGoals = int(numOfGoals)    
-    #print "numOfClauses ", numOfClauses
-    #print "numOfGoals ", numOfGoals    
-
+    
     for testCaseCount in range(0, NUMBER_OF_TESTS):
+        numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
+        numOfClauses = int(numOfClauses)
+        numOfGoals = int(numOfGoals)    
+
         kbAndGoals = []
         goals = []
         for clauseCount in range(0, numOfClauses):

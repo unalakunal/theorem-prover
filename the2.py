@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 from string import ascii_uppercase
 from collections import OrderedDict
 
@@ -84,7 +84,6 @@ class Predicate(object):
 
             elif isinstance(value, Predicate):
                 value.changeTermTo(termName, newValue)
-
 
     def printPredicate(self, showNegated=True):                 # returns a string representation of the predicate object
         res = self.name + "("
@@ -234,7 +233,6 @@ def substituteSingleClause(c, unification, changedPredicate1, changedPredicate2,
                     newPred.changeTermTo(unifier[0], unifier[1])
                 newElements[newPred.printPredicate()] = newPred
 
-
 # substitute two clauses given the unification and the mutual predicate used for unification
 def substitute(c1, c2, unification, changedPredicate1, changedPredicate2):
     if len(c1.getClauseElements()) == 1 and len(c2.getClauseElements()) == 1:
@@ -255,7 +253,6 @@ def safeAppend(arr, clause):
     arr.append(clause)
 
 def resolution(kbAndGoals, goals):
-    resolvents = []
     for j in goals:
         for p2 in j.getClauseElements():
             for i in kbAndGoals:
@@ -273,8 +270,6 @@ def resolution(kbAndGoals, goals):
                                 return None
                             safeAppend(kbAndGoals, newClause)
                             safeAppend(goals, newClause)
-                            newClause.printParents()
-                            resolvents.append((j, i, newClause))
     print "no"
 
 def printResult(lastClause1, lastClause2):
@@ -293,7 +288,6 @@ def printResult(lastClause1, lastClause2):
         
     for i in res[::-1]:
         print i
-
 
 def printResolution(r0 ,r1, r2):
     if r2 == "empty_clause":
@@ -315,75 +309,9 @@ def unifyMiddleware(predicate):
             e.append(unifyMiddleware(values[i]))
     return e
 
-
-def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
-    length = end - start
-    negated = False
-    i = start
-    clauseElements = OrderedDict()
-    while i < end:
-        if clause[i] == "~":
-            negated = True
-            i = i + 1
-
-        elif clause[i] == "," or clause[i] == "(" or clause[i] == " ":
-            i = i+1
-            continue
-
-        elif (i+1 < length) and (clause[i+1] == "(") :
-            if (i-1 >= 0):
-                if (clause[i-1] != "~"):
-                    negated = False
-                elif (clause[i-1] == "~"):
-                    negated = True
-
-            else:
-                negated = False
-
-            neededClosed = 1
-            newStart = i
-            newEnd = i + 1
-            k = i + 2
-            while(k < length and neededClosed > 0):
-                if (clause[k] == "("):
-                    neededClosed = neededClosed + 1
-
-                elif (clause[k] == ")"):
-                    neededClosed = neededClosed -1
-                    if neededClosed == 0:
-                        i = k
-                        newEnd = k + 1
-                        p = getPredicate(newStart, newEnd, clause, negated)
-                        clauseElements[p.printPredicate()] = p
-                        negated = False
-                        break
-                k = k + 1
-
-            i = i + 1
-
-        else:
-            t = getTerm(clause[i], negated)
-            clauseElements[t.name] = t
-            negated = False
-            i = i +1
-
-    
-
-    c = Clause(clauseElements)
-
-    kbAndGoals.append(c)
-
-    if isGoal:
-        goals.append(c)
-    
-
-# start inclusive, end exclusive
-def getPredicate(start, end, clause, negated):
-    name = clause[start]
-    start = start + 1
-    values = OrderedDict()
-    i = start
-    newNegated = negated
+def searchThroughLoop(start, end, clause, newNegated):
+    elements = OrderedDict()    
+    i = start    
     while i < end:
         if clause[i] == "~":
             newNegated = True
@@ -401,37 +329,52 @@ def getPredicate(start, end, clause, negated):
             while(k < end and neededClosed > 0):
                 if (clause[k] == "("):
                     neededClosed = neededClosed + 1
-
                 elif (clause[k] == ")"):
                     neededClosed = neededClosed -1
                     if neededClosed == 0:
                         i = k
                         newEnd = k + 1
                         p = getPredicate(newStart, newEnd, clause, newNegated)
-                        values[p.name] = p
+                        elements[p.printPredicate()] = p
+                        newNegated = False
                         break
                 k = k + 1
-
             i = i + 1
 
         else:
-            t = getTerm(clause[i], newNegated)
-            values[t.name] = t
+            t = Term(clause[i], newNegated)
+            elements[t.name] = t
             i = i +1
+
+    return elements
+
+def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
+    length = end - start
+    newNegated = False
+    
+    elements = searchThroughLoop(start, end, clause, newNegated)
+
+    c = Clause(elements)
+
+    kbAndGoals.append(c)
+    if isGoal:
+        goals.append(c)
+
+def getPredicate(start, end, clause, negated):
+    name = clause[start]
+    start = start + 1
+    newNegated = negated
+
+    elements = searchThroughLoop(start, end, clause, newNegated)    
 
     ifNegated = start - 2
     if clause[ifNegated] == "~":
         newNegated = True
     else:
         newNegated = False        
-    predicate = Predicate(name, newNegated, values)
+    predicate = Predicate(name, newNegated, elements)
 
     return predicate
-
-
-def getTerm(name, negated):
-    return Term(name, negated)
-
 
 def main():
     inp = open('input.txt', 'r')

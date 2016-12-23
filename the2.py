@@ -1,15 +1,8 @@
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO: What if there are two predicates with the same name in the clause, or recursive predicates?
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# TODO: What if there exists a unification like x/p(y)
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 from copy import copy, deepcopy
 from string import ascii_uppercase
-import sys
 from collections import OrderedDict
 
-# Clause has predicates as a dictionary where its keys are full string names, and values are objects
+# Clause has predicates as an ordered dictionary where its keys are full string names, and values are objects
 # If a clause is a result of a resolution, we need their parents to backtrack print it
 class Clause(object):
     def __init__(self, clauseElements, parent1=None, parent2=None):
@@ -18,7 +11,7 @@ class Clause(object):
         self.parent1 = parent1
         self.parent2 = parent2
 
-    def printClause(self, returnString=False):
+    def printClause(self, returnString=False):      # returns string representation of clause in order
         res = ""
         keys = self.clauseElements.keys()
         for i in keys:
@@ -32,7 +25,7 @@ class Clause(object):
         if returnString:
             return res
 
-    def isEqual(self, aClause):
+    def isEqual(self, aClause):                     # checks if a clause is equal to clause object at hand
         if self.size != aClause.size:
             return False
 
@@ -50,14 +43,14 @@ class Clause(object):
 
         return True
 
-    def getClauseElements(self):
+    def getClauseElements(self):                    # return array of clause elements
         res = []
         keys = self.clauseElements.keys()
         for i in keys:
             res.append(self.clauseElements[i])
         return res
 
-    def printParents(self):
+    def printParents(self):                         # return string representation of the parents of clause
         if self.parent1:
             self.parent1.printClause()
             self.parent2.printClause()            
@@ -65,9 +58,9 @@ class Clause(object):
             return "None"
 
 # A predicate has:
-# a name - function name that is definitive
+# name - function name
 # negated - a flag to see if this predicate is negated or not
-# values - either False or a dictionary of values, can be a term (variable or constant) or again a predicate
+# values - either False or an ordered dictionary of values, can be a Term object (variable or constant) or again a Predicate
 # size - how many values are there
 class Predicate(object):
 
@@ -77,20 +70,7 @@ class Predicate(object):
         self.values = values
         self.size = len(self.values.keys())
 
-    def setValue(self, key, value):
-        self.values[key] = value
-        self.size = self.size + 1
-
-    def getValues(self):
-        res = []
-        for i in self.values.keys():
-            res.append(self.values[i])
-        return res
-
-    def changeName(self, newName):
-        self.name = newName
-
-    def changeTermTo(self, termName, newValue):
+    def changeTermTo(self, termName, newValue):                 # change every termName inside predicate with newValue
         if self.name == termName:
             self.name = newValue
 
@@ -106,8 +86,7 @@ class Predicate(object):
                 value.changeTermTo(termName, newValue)
 
 
-    def printPredicate(self, showNegated=True):
-        
+    def printPredicate(self, showNegated=True):                 # returns a string representation of the predicate object
         res = self.name + "("
         if showNegated and self.negated:
             res = "~" + self.name + "("
@@ -128,7 +107,7 @@ class Predicate(object):
         res = res + ")"
         return res
 
-    def isEqual(self, aPredicate):
+    def isEqual(self, aPredicate):                              # checks if a predicate is equal to predicate object at hand
         notSameSize = (self.size != aPredicate.size)
         notSameName =(self.name != aPredicate.name)
         notSameNegated = (self.negated != aPredicate.negated)
@@ -149,18 +128,7 @@ class Predicate(object):
 
         return True
 
-    def termOccurs(self, term):
-        if self.name == term.name:
-            return True
-
-        else:
-            keys = self.values.keys()
-            for i in keys:
-                if self.values[i].occurs(term):
-                    return True
-        
-        return False
-
+# A Term object is an atom, where it can be a variable or a constant
 class Term(object):
     
     def __init__(self, name, negated):
@@ -171,17 +139,11 @@ class Term(object):
         else:
             self.isConstant = False
 
-    def replaceName(self, newName):
-        self.name = newName
-
-    def printTerm(self):
+    def printTerm(self):                                    # returns a string representation of the predicate object
         return self.name
 
-    def isEqual(self, aTerm):
+    def isEqual(self, aTerm):                               # checks if a term is equal to term object at hand
         return (self.name == aTerm.name) and (self.negated == aTerm.negated)
-
-    def termOccurs(self, term):
-        return (self.name == aTerm.name)
 
 # elements are list of atoms
 def unify(element1, element2):
@@ -193,7 +155,7 @@ def unify(element1, element2):
     elif element1 == element2:
         return []
 
-    # added for cases like [["f"]]
+    # for cases like [["f"]]
     if len1 == 1 and len2 == 1:
         if isinstance(element1[0], list):
             element1 = element1[0]
@@ -202,7 +164,7 @@ def unify(element1, element2):
             element2 = element2[0]
             len2 = len(element2)
 
-    # added for cases like ["A"] ["A"]
+    # for cases like ["A"] ["A"]
     if (isinstance(element1[0], str) and (element1[0] in ascii_uppercase) and len1 == 1) and (isinstance(element2[0], str) and(element2[0] in ascii_uppercase) and len2 == 1):
         return None
 
@@ -266,7 +228,6 @@ def substituteSingleClause(c, unification, changedPredicate1, changedPredicate2,
     else:
         keys = c.clauseElements.keys()
         for i in keys:
-            # TODO: unify to predicate
             newPred = deepcopy(c.clauseElements[i])
             if (not newPred.isEqual(changedPredicate1)) and (not newPred.isEqual(changedPredicate2)):
                 for unifier in unification:
@@ -292,10 +253,8 @@ def safeAppend(arr, clause):
         if clause.isEqual(i):
             return
     arr.append(clause)
-    
 
 def resolution(kbAndGoals, goals):
-    count = 1
     resolvents = []
     for j in goals:
         for p2 in j.getClauseElements():
@@ -312,12 +271,10 @@ def resolution(kbAndGoals, goals):
                             if newClause == "contradiction":
                                 printResult(copy1, copy2)
                                 return None
-                            count = count + 1
                             safeAppend(kbAndGoals, newClause)
                             safeAppend(goals, newClause)
                             newClause.printParents()
                             resolvents.append((j, i, newClause))
-
     print "no"
 
 def printResult(lastClause1, lastClause2):
@@ -346,6 +303,7 @@ def printResolution(r0 ,r1, r2):
 
     return res
 
+# Converts predicates to list of atoms in order for unifier to process them. i.e. p(A, f(x)) returns ['p', 'A',  ['f', 'x']]
 def unifyMiddleware(predicate):
     values = predicate.values
     e = [predicate.name]
@@ -358,7 +316,6 @@ def unifyMiddleware(predicate):
     return e
 
 
-#TODO: length is always 1 more than it should be
 def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
     length = end - start
     negated = False
@@ -479,7 +436,7 @@ def getTerm(name, negated):
 def main():
     inp = open('input.txt', 'r')
     NUMBER_OF_TESTS = int(inp.readline().split("/n")[0])
-    
+
     for testCaseCount in range(0, NUMBER_OF_TESTS):
         numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
         numOfClauses = int(numOfClauses)

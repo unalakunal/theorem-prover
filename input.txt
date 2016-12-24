@@ -1,4 +1,4 @@
-4
+5
 3 1
 p(A, f(t))
 q(z), ~p(z, f(B))
@@ -26,3 +26,12 @@ a(L)
 ~m(x,y),p(x,y)
 ~p(x,y),~a(x),o(x,y)
 ~o(L,F)
+7 1
+d(F)
+o(J,F)
+~d(y),~o(x,y),l(x)
+~l(x),~a(y),~k(x,y)
+k(J,T),k(C,T)
+c(T)
+~c(x),a(x)
+~k(C,T)

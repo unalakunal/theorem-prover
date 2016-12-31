@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+
+######################################################
+#
+# theorem-prover - theorem prover for predicate logic
+# written by Unal Akunal (unal.akunal@gmail.com)
+#
+######################################################
+
 from copy import deepcopy
 from string import ascii_uppercase
 from collections import OrderedDict
+import argparse
 
 # Clause has predicates as an ordered dictionary where its keys are full string names, and values are objects
 # If a clause is a result of a resolution, we need their parents to backtrack print it
@@ -19,7 +29,7 @@ class Clause(object):
             if isinstance(element, Predicate):
                 res = res + element.printPredicate(True) + ","
             else:
-                res = res + element.printTerm()
+                res = res + element.printLiteral()
 
         res = res[0:len(res)-1]
         if returnString:
@@ -53,14 +63,28 @@ class Clause(object):
     def printParents(self):                         # return string representation of the parents of clause
         if self.parent1:
             self.parent1.printClause()
-            self.parent2.printClause()            
+            self.parent2.printClause()
         else:
             return "None"
+
+    # only works if there is one predicate, otherwise CNF form will not be held in negation
+    def negateClause(self):
+        try:
+            keys = self.clauseElements.keys()
+            if (len(keys) > 1):
+                print "Can not negate the goal, violates the CNF form"
+                return
+            g = self.clauseElements[keys[0]]
+            g.negatePredicate()
+            return self
+
+        except Exception as e:
+            print "Goal set can no be found"
 
 # A predicate has:
 # name - function name
 # negated - a flag to see if this predicate is negated or not
-# values - either False or an ordered dictionary of values, can be a Term object (variable or constant) or again a Predicate
+# values - either False or an ordered dictionary of values, can be a Literal object (variable or constant) or again a Predicate
 # size - how many values are there
 class Predicate(object):
 
@@ -70,20 +94,20 @@ class Predicate(object):
         self.values = values
         self.size = len(self.values.keys())
 
-    def changeTermTo(self, termName, newValue):                 # change every termName inside predicate with newValue
-        if self.name == termName:
+    def changeLiteralTo(self, literalName, newValue):                 # change every literalName inside predicate with newValue
+        if self.name == literalName:
             self.name = newValue
 
         for i in self.values.keys():
             value = self.values[i]
 
-            if isinstance(value, Term) and value.name == termName:
+            if isinstance(value, Literal) and value.name == literalName:
                 negatedBefore = value.negated
-                newTerm = Term(newValue, negatedBefore)
-                self.values[i] = newTerm
+                newLiteral = Literal(newValue, negatedBefore)
+                self.values[i] = newLiteral
 
             elif isinstance(value, Predicate):
-                value.changeTermTo(termName, newValue)
+                value.changeLiteralTo(literalName, newValue)
 
     def printPredicate(self, showNegated=True):                 # returns a string representation of the predicate object
         res = self.name + "("
@@ -98,7 +122,7 @@ class Predicate(object):
             if isinstance(v, Predicate):
                 res = res + v.printPredicate()
             else:
-                res = res + v.printTerm()
+                res = res + v.printLiteral()
 
             if count < self.size:
                 res = res + ","
@@ -127,9 +151,13 @@ class Predicate(object):
 
         return True
 
-# A Term object is an atom, where it can be a variable or a constant
-class Term(object):
-    
+    def negatePredicate(self):
+        self.negated = (not self.negated)
+        return self
+
+# A Literal object is an atom, where it can be a variable or a constant
+class Literal(object):
+
     def __init__(self, name, negated):
         self.name = name
         self.negated = negated
@@ -138,11 +166,11 @@ class Term(object):
         else:
             self.isConstant = False
 
-    def printTerm(self):                                    # returns a string representation of the predicate object
+    def printLiteral(self):                                    # returns a string representation of the predicate object
         return self.name
 
-    def isEqual(self, aTerm):                               # checks if a term is equal to term object at hand
-        return (self.name == aTerm.name) and (self.negated == aTerm.negated)
+    def isEqual(self, aLiteral):                               # checks if a literal is equal to literal object at hand
+        return (self.name == aLiteral.name) and (self.negated == aLiteral.negated)
 
 # elements are list of atoms
 def unify(element1, element2):
@@ -230,7 +258,7 @@ def substituteSingleClause(c, unification, changedPredicate1, changedPredicate2,
             newPred = deepcopy(c.clauseElements[i])
             if (not newPred.isEqual(changedPredicate1)) and (not newPred.isEqual(changedPredicate2)):
                 for unifier in unification:
-                    newPred.changeTermTo(unifier[0], unifier[1])
+                    newPred.changeLiteralTo(unifier[0], unifier[1])
                 newElements[newPred.printPredicate()] = newPred
 
 # substitute two clauses given the unification and the mutual predicate used for unification
@@ -238,7 +266,7 @@ def substitute(c1, c2, unification, changedPredicate1, changedPredicate2):
     if len(c1.getClauseElements()) == 1 and len(c2.getClauseElements()) == 1:
         return "contradiction"
     newElements = OrderedDict()
-    
+
     substituteSingleClause(c1, unification, changedPredicate1, changedPredicate2, newElements)
     substituteSingleClause(c2, unification, changedPredicate1, changedPredicate2, newElements)
 
@@ -249,10 +277,11 @@ def substitute(c1, c2, unification, changedPredicate1, changedPredicate2):
 def safeAppend(arr, clause):
     for i in arr:
         if clause.isEqual(i):
-            return
+            return False
     arr.append(clause)
+    return True
 
-def resolution(kbAndGoals, goals):
+def resolution(args, kbAndGoals, goals):
     for j in goals:
         for p2 in j.getClauseElements():
             for i in kbAndGoals:
@@ -268,12 +297,16 @@ def resolution(kbAndGoals, goals):
                             if newClause == "contradiction":
                                 printResult(copy1, copy2)
                                 return None
-                            safeAppend(kbAndGoals, newClause)
-                            safeAppend(goals, newClause)
-    print "no"
+                            check1 = safeAppend(kbAndGoals, newClause)
+                            check2 = safeAppend(goals, newClause)
+                            if check1 and check2 and args['all']:
+                                s = copy1.printClause(True) + "$" + copy2.printClause(True) + "$" + newClause.printClause(True)
+                                print s
+
+    print "Goal set can not be derived from the knowledge base set"
 
 def printResult(lastClause1, lastClause2):
-    print "yes"
+    print "\nGoals can be inferred from the knowledge base with the following refutation steps:"
     stack = [lastClause1, lastClause2]
     res = [printResolution(lastClause1, lastClause2, "empty_clause")]
 
@@ -285,7 +318,7 @@ def printResult(lastClause1, lastClause2):
             stack.append(a.parent2)
             tempRes = printResolution(a.parent1, a.parent2, a)
             res.append(tempRes)
-        
+
     for i in res[::-1]:
         print i
 
@@ -303,7 +336,7 @@ def unifyMiddleware(predicate):
     e = [predicate.name]
     keys = predicate.values.keys()
     for i in keys:
-        if isinstance(values[i], Term):
+        if isinstance(values[i], Literal):
             e.append(values[i].name)
         else:
             e.append(unifyMiddleware(values[i]))
@@ -342,19 +375,21 @@ def searchThroughLoop(start, end, clause, newNegated):
             i = i + 1
 
         else:
-            t = Term(clause[i], newNegated)
+            t = Literal(clause[i], newNegated)
             elements[t.name] = t
             i = i +1
 
     return elements
 
-def inputHandler(clause, start, end, kbAndGoals, isGoal=False, goals=False):
+def inputHandler(args, clause, start, end, kbAndGoals, isGoal=False, goals=[]):
     length = end - start
     newNegated = False
-    
+
     elements = searchThroughLoop(start, end, clause, newNegated)
 
     c = Clause(elements)
+    if args['negated']:
+        c.negateClause()
 
     kbAndGoals.append(c)
     if isGoal:
@@ -376,23 +411,45 @@ def getPredicate(start, end, clause, negated):
 
     return predicate
 
-def main():
-    inp = open('input.txt', 'r')
+def readSingleFile(args):
+    inp = args['input'][0]
     NUMBER_OF_TESTS = int(inp.readline().split("/n")[0])
 
     for testCaseCount in range(0, NUMBER_OF_TESTS):
         numOfClauses, numOfGoals = (inp.readline().split("/n")[0]).split(" ")
         numOfClauses = int(numOfClauses)
-        numOfGoals = int(numOfGoals)    
+        numOfGoals = int(numOfGoals)
 
         kbAndGoals = []
         goals = []
         for clauseCount in range(0, numOfClauses):
             clause = str(inp.readline().split("/n")[0])
-            inputHandler(clause, 0, len(clause) - 1, kbAndGoals)
+            inputHandler(args, clause, 0, len(clause) - 1, kbAndGoals)
         for clauseCount in range(0, numOfGoals):
             clause = str(inp.readline().split("/n")[0])
-            inputHandler(clause, 0, len(clause) - 1, kbAndGoals, True, goals)
-        resolution(kbAndGoals, goals)
+            inputHandler(args, clause, 0, len(clause) - 1, kbAndGoals, True, goals)
+        resolution(args, kbAndGoals, goals)
 
-main()
+def createParser():
+    parser = argparse.ArgumentParser(description='Theorem prover for first order predicate logic using resolution refutation')
+    parser.add_argument('input', type=file, nargs='*',
+                        help='the file that contains initial clauses in the knowledge base and the goal set of the theorem')
+    parser.add_argument('-a', '--all', help='display all the resolutions of this algorithm',
+                        action='store_true')
+    #TODO:
+    # parser.add_argument('-m', '-multiple', help='work with a single file for multiple iterations',
+    #                     action='readMultipleFiles')
+    parser.add_argument('-n', '--negated', help='does not negate the goal if the goal set clauses are already given in negated form',
+                        action='store_true')
+    return parser
+
+def runCommandLine():
+    parser = createParser()
+    args = vars(parser.parse_args())
+    if not args['input']:
+        parser.print_help()  # default message if not provided any input file
+    else:
+        readSingleFile(args)
+
+if __name__ == '__main__':
+    runCommandLine()

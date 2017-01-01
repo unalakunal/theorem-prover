@@ -2,11 +2,11 @@
 A theorem prover for First Order Predicate Logic using resolution refutation technique and set of support strategy.
 
 ## What the algorithm does
-Briefly,
-1. Parses the knowledge base and goal sets, creates classes accordingly as a clause per line.
-2. Iterating over goal set and (knowledge base + goal) sets, using unification routine, tries to find a new resolution.
-* Explained in detail: http://www-cs.ccny.cuny.edu/~cssjl/AI1Lectures/Lesson10.pdf
-3. Halts when a contradiction is reached. Prints resolutions top to bottom with "$"s.
+Briefly,  
+1. Parses the knowledge base and goal sets, creates classes accordingly as a clause per line.  
+2. Iterating over goal set and (knowledge base + goal) sets, using unification routine, tries to find a new resolution.  
+* Explained in detail: http://www-cs.ccny.cuny.edu/~cssjl/AI1Lectures/Lesson10.pdf  
+3. Halts when a contradiction is reached. Prints resolutions top to bottom with "$"s.  
 
 Details are nicely explained in this link: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-825-techniques-in-artificial-intelligence-sma-5504-fall-2002/lecture-notes/Lecture8FinalPart1.pdf
 
@@ -29,8 +29,7 @@ Details are nicely explained in this link: https://ocw.mit.edu/courses/electrica
 Input is a file with knowledge base and goal clauses. By default, it is assumed that the goal clause(s) are negated; if not, you can use -n flag to specify the program to handle negation itself.
 
 ## Output Format
-Prints resolutions step by step as  
-[clause1]$[clause2]$[newClause]  
+Prints resolutions step by step as:   [clause1]$[clause2]$[newClause]  
 
 ## Example
 * Input:  

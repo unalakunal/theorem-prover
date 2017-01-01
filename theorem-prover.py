@@ -439,7 +439,7 @@ def createParser():
     #TODO:
     # parser.add_argument('-m', '-multiple', help='work with a single file for multiple iterations',
     #                     action='readMultipleFiles')
-    parser.add_argument('-n', '--negated', help='does not negate the goal if the goal set clauses are already given in negated form',
+    parser.add_argument('-n', '--negated', help='negates the goal if the goal set clauses are not already given in negated form',
                         action='store_true')
     return parser
 
